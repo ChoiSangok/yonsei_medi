@@ -1,0 +1,119 @@
+<html>
+    <head>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>  
+        <link rel='stylesheet' href='/stylesheets/style.css' />
+    </head>
+
+    <body> 
+    <div class="main_container">
+        <h1><a href="/pra_board" style="text-decoration: none;">Board 검색</h1></a>
+        <form action="/pra_board" method="POST" name ="frm">
+            <div class="title_con">
+
+                <%
+                    
+                %>
+                <label for="total"><input type="radio" id="total" name="radioVal" value="total" >total</label>
+                <label for="title"><input type="radio" id="title" name="radioVal" value="title">title</label>
+                <label for="contents"><input type="radio" id="contents" name="radioVal" value="contents">contents</label>
+                <input type="text" id="keyword" name="keyword" placeholder="검색" value ="<%= keyword %>" >
+                <input type="submit" name="boardBtn" value="검색" id="sub">
+                <!-- 병원종류 -->
+                <select name ="hosSelect" id="hos_aggs_sel_id" style="text-align: center;" onchange="this.form.submit()">
+                    <%
+                        const option = ["all","share","sev","gs","yuhs","nursing","medicine","dentistry","gsph","robotmis","yi","dental"];
+                        for( let i = 0; i<option.length; i++) { %>
+                            <% if (hosSelect !== undefined  && option[i] === hosSelect ) {  %>
+                                <option value="<%= option[i] %>" selected><%= option[i] %></option>
+                            <% } else { %>
+                                <option value="<%= option[i] %>"><%= option[i] %></option>                       
+                        <% } }
+                    %>
+                </select>
+                <!-- 오름내림 -->
+                <select name="sortSelect" style="float: right;" onchange="this.form.submit()">
+                    <%
+                        const sort = ["asc","desc"];
+                        for ( let i = 0; i<sort.length; i++ ) { %>
+                            <% if( sortSelect !== undefined && sort[i] === sortSelect ){ %>
+                                <option value="<%= sort[i] %>" selected><%= sort[i] %></option>
+                            <% } else { %>
+                                <option value="<%= sort[i] %>"><%= sort[i] %></option>
+                            <% } }
+                    %>
+                </select>
+                <!-- 페이지 10 20 30 -->
+                <select name = "pagingSize" style="float: right;" onchange="this.form.submit()">
+                    <%
+                        const paging = ["10", "20", "30"];
+                        for(let i=0; i<paging.length; i++ ) { %>
+                            <% if( pagingSize !== undefined && paging[i] === pagingSize ) { %>
+                                <option value="<%=paging[i] %>" selected><%= paging[i]%></option>
+                            <% } else { %>
+                                <option value="<%=paging[i] %>"><%= paging[i]%></option>
+                            <% } } 
+                    %>
+                </select>
+            </div>
+            <p id="hos_aggs" style="float: left;">검색결과는 총 : <%= data.totalSize %> 개 입니다 <br></p>
+            <br>
+            <!-- 테이블 -->
+            <div class = "praboard_div">
+                <table id ="praboardTab">
+                    <thead>
+                            <tr>
+                                <th style="width: 10%;">art_no</th>
+                                <th style="width: 55%;">제목</th>
+                                <th style="width: 10%;">작성자</th>
+                                <th style="width: 15%;">날짜</th>
+                            </tr>
+                    </thead>
+                    <tbody>
+                            <% for(var i=0; i< data.list.length ; i++){ %>
+                                <tr>
+                                    <td><%= data.list[i].article_no %></td>
+                                    <td><%- data.list[i]["title"] %></td>
+                                    <td><%= data.list[i].writer_nm %></td>
+                                    <td><%= data.list[i].last_updt_dt %></td>
+                                </tr>
+                            <% } %>
+                    </tbody>
+                </table>
+            </div>   
+            <a href="/pra_board?keyword=<%=keyword%>&pagingFrom=1&hosSelect=<%=hosSelect%>&sortSelect=<%=sortSelect%>&radioVal=<%=radioVal%>&pagingSize=<%=pagingSize%>" style="text-decoration: none; color: red;"> << </a>
+        
+            <% if(parseInt((pagingFrom/ pagingSize)+1)* pagingSize <= (data.totalSize/pagingSize)) { %>
+                <% for (i = parseInt(pagingFrom/ pagingSize)*pagingSize+1 ; i <= parseInt((pagingFrom/ pagingSize)+1)*pagingSize; i++ ){ %>
+                    <% if( i === parseInt(pagingFrom) ){ %>
+                        <a href="/pra_board?keyword=<%=keyword%>&pagingFrom=<%=(i) %>&hosSelect=<%=hosSelect%>&sortSelect=<%=sortSelect%>&radioVal=<%radioVal%>&pagingSize=<%=pagingSize%>" style="text-decoration: none; color:black;"><%=i%></a>
+                    <% } else { %>
+                        <a href="/pra_board?keyword=<%=keyword%>&pagingFrom=<%=(i) %>&hosSelect=<%=hosSelect%>&sortSelect=<%=sortSelect%>&radioVal=<%=radioVal%>&pagingSize=<%=pagingSize%>" style="text-decoration: none;"><%=i%></a>
+                        <% } %>
+                    <% if( i === (parseInt((pagingFrom/ pagingSize)+1)* pagingSize) ){ %>   
+                        <a href="/pra_board?keyword=<%=keyword%>&pagingFrom=<%=(i) %>&hosSelect=<%=hosSelect%>&sortSelect=<%=sortSelect%>&radioVal=<%=radioVal%>&pagingSize=<%=pagingSize%>" style="text-decoration: none; color: black;"> next </a>
+                    <% }  %>
+
+                <% } %>
+            <% } else { %>
+                <% for (i = parseInt(pagingFrom/ pagingSize)*pagingSize+1; i <=parseInt(data.totalSize/pagingSize)+1; i++ ){ %>
+                    <% if(i === parseInt(pagingFrom)) { %> 
+                        <a href="/pra_board?keyword=<%=keyword%>&pagingFrom=<%=(i) %>&hosSelect=<%=hosSelect%>&sortSelect=<%=sortSelect%>&radioVal=<%=radioVal%>&pagingSize=<%=pagingSize%>" style="text-decoration: none; color: black;"><%=i%></a>
+                    <% } else { %>
+                        <a href="/pra_board?keyword=<%=keyword%>&pagingFrom=<%=(i) %>&hosSelect=<%=hosSelect%>&sortSelect=<%=sortSelect%>&radioVal=<%=radioVal%>&pagingSize=<%=pagingSize%>" style="text-decoration: none;"><%=i%></a>
+                    <% } %>
+                <% }%>
+                <% if( i === parseInt(data.totalSize/pagingSize)) { %>
+                    <a href="/pra_board?keyword=<%=keyword%>&pagingFrom=<%=(i) %>&hosSelect=<%=hosSelect%>&sortSelect=<%=sortSelect%>&radioVal=<%=radioVal%>&pagingSize=<%=pagingSize%>" style="text-decoration: none;"> >> </a>
+                <% } %> 
+            <% } %>
+            <% for (i = 1; i<=(data.totalSize/pagingSize)+1; i++ ){ %>
+                <% if( i === parseInt((data.totalSize/pagingSize)+1)){ %>   
+                    <a href="/pra_board?keyword=<%=keyword%>&pagingFrom=<%=(i) %>&hosSelect=<%=hosSelect%>&sortSelect=<%=sortSelect%>&radioVal=<%=radioVal%>&pagingSize=<%=pagingSize%>" style="text-decoration: none; color: red;"> >> </a>
+                <% }  %>
+            <% } %>
+            <div>
+            </div>
+        </form>
+    </div>
+    </body> 
+</html>

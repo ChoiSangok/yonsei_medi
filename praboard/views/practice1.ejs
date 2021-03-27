@@ -1,0 +1,220 @@
+<html>
+    <head>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>  
+        <link rel='stylesheet' href='/stylesheets/style.css' />
+    </head>
+
+    <!-- 결과값 -->
+    <script type="text/javascript">
+    function praBoardBtn(from){
+        
+        //결과값 초기화!
+        $("#praboardTab").empty();
+        $("#hos_aggs").empty();
+
+        //검색값
+        let keyword = $('#keyword').val();
+        const page = from || 1;
+
+
+        // 전체 제목 본문
+        let radioVal = $('input[name="radioBtn"]:checked').val();
+
+        //select sev, gs, share ... 선택 
+        let hosSelect = $('select[name="hos_aggs_sel"]').val();
+        //select asc, desc 선택
+        let sortSelect = $('select[name="sort_asc_desc"]').val();
+        //paging 처리
+        let pagingSize = $('select[name="paging_size"]').val();
+
+        $.ajax({
+            type:'POST',
+            url:'/pra_board',
+            data: { keyword : keyword,
+                    radioVal : radioVal,
+                    hosSelect : hosSelect,
+                    sortSelect : sortSelect,
+                    //10 20 30 
+                    pagingSize : pagingSize,
+                    // 페이지 버튼
+                    page : page
+                },
+            dataType: "json",
+            success : function ( data ){
+                var result = data.data.list;
+                var aggregation = data.data.aggs;
+                console.log(data);
+                //결과값 
+                var total = `${data.data.totalSize}`;
+
+                console.log('vartotal : '+ total);
+
+                //결과값 append
+                $("#praboardTab").append(str);
+                $("#hos_aggs").append(aggs);
+            }
+            , error : function(err){
+                console.log("ajax 실패~");
+            }
+        })
+    }
+    </script>
+
+    <!-- 정렬 -->
+    <script>
+        function sort_ad(from){
+        //결과값 초기화!
+        $("#praboardTab").empty();
+        $("#hos_aggs").empty();
+
+        let keyword = $('#keyword').val();
+        // 전체 제목 본문
+        let radioVal = $('input[name="radioVal"]:checked').val();
+        //select sev, gs, share ... 선택 
+        let hosSelect = $('select[name="hosSelect"]').val();
+        //select asc, desc 선택
+        let sortSelect = $('select[name="sortSelect"]').val();
+
+        let pagingSize = $('select[name="pagingSize"]').val();
+        const page = from || 1;
+
+        console.log('keyword : ' + keyword);
+        console.log('radioval : ' + radioVal);
+        console.log('hosSelect : ' + hosSelect);
+        console.log('sortSelect : '+ sortSelect);
+        console.log('pagingSize : ' + pagingSize);
+        console.log('page : ' + page);
+        // let pagingFrom = $('')
+
+        var aggs =`<p>검색결과는 총 : `;
+
+        var str =`<tr>
+            <th style="width: 10%;">art_no</th>
+            <th style="width: 55%;">제목</th>
+            <th style="width: 10%;">작성자</th>
+            <th style="width: 15%;">날짜</th>
+                <select name="sort_asc_desc" class = "sort_asc">
+                    <option value="asc">asc</option>
+                    <option value="desc">desc</option>
+                </select>
+        </tr>`;
+        $.ajax({
+            type:'GET',
+            url:'/pra_board/sort',
+            data: { keyword : keyword,
+                    radioVal : radioVal,
+                    hosSelect : hosSelect,
+                    sortSelect : sortSelect,
+                    pagingSize : pagingSize,
+                    page : page
+                },
+            dataType: "json",
+            success : function ( data ){
+
+                var result = data.data.list;
+                var aggregation = data.data.aggs;
+                //결과값 
+                result.map( data => {
+                    str +=`<td>${data.article_no}</td>`;
+                    str +=`<td>${data.title}</td>`;
+                    str +=`<td>${data.writer_nm}</td>`;
+                    str +=`<td>${data.last_updt_dt}</td>`
+                    str +=`</tr>`;
+                });
+                
+                aggs += `${data.data.totalSize} 입니다`;
+                //결과값 append
+                $("#praboardTab").append(str);
+                $("#hos_aggs").append(aggs);
+            },
+            error: function(err){
+                console.log("ajax 실패~");
+                console.log(err)
+            }
+        })
+    }
+    </script>
+
+    <body> 
+    <div class="main_container">
+        <h1>Board 검색</h1>
+        <form action="/pra_board" method="POST" name ="frm">
+        <div class="title_con">
+            <label for="total"><input type="radio" id="total" name="radioVal" value="total" checked>전체</label>
+            <label for="title"><input type="radio" id="title" name="radioVal" value="title">제목</label>
+            <label for="contents"><input type="radio" id="contents" name="radioVal" value="contents">본문</label>
+            <br />
+            <input type="text" id="keyword" name="keyword" placeholder="검색" value ="<%= keyword %>" >
+            <input type="submit" name="boardBtn" value="검색" id="sub">
+
+            <select name ="hosSelect" id="hos_aggs_sel_id" style="text-align: center;" onchange="sort_ad()">
+                <%
+                    const option = ["all","share","sev","gs","yuhs","nursing","medicine","dentistry","gsph","robotmis","yi","dental"];
+
+                    for( let i = 0; i<option.length; i++) { %>
+                        <% if (hosSelect !== undefined  && option[i] === hosSelect ) {  %>
+                            <option value="<%= option[i] %>" selected><%= option[i] %></option>
+                        <% } else { %>
+                            <option value="<%= option[i] %>"><%= option[i] %></option>                       
+                    <% } }
+                %>
+            </select>
+            
+            <select name="sortSelect" style="float: right;" onchange="sort_ad()">
+                <option value="asc">asc</option>
+                <option value="desc">desc</option>
+            </select>
+            <select name = "pagingSize" style="float: right;" onchange="sort_ad()">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+            </select>
+            <!-- 총 수 -->
+            
+        </div>
+        
+        </form>
+        <p id="hos_aggs" style="float: left;">검색결과는 총 : <%= data.totalSize %> 개 입니다</p>
+        <br>
+        
+    <hr>
+        <div class = "praboard_div">
+            <table id ="praboardTab">
+                <thead>
+                        <tr>
+                            <!-- <th style="width: 10%;">순서</th> -->
+                            <th style="width: 10%;">art_no</th>
+                            <th style="width: 55%;">제목</th>
+                            <th style="width: 10%;">작성자</th>
+                            <th style="width: 15%;">날짜</th>
+                        </tr>
+                </thead>
+
+                <tbody>                
+                        <% for(var i=0; i< data.list.length ; i++){ %>
+                            <tr>
+                                <td><%= data.list[i].article_no %></td>
+                                <td><%= data.list[i].title %></td>
+                                <td><%= data.list[i].writer_nm %></td>
+                                <td><%= data.list[i].last_updt_dt %></td>
+                            </tr>
+                        <% } %>
+                </tbody>
+            </table>
+        </div>   
+    </div>
+    <a href="#" class="paging-button">&laquo;&laquo;</a>
+
+    <div onchange="sort_ad()">
+        <p>totalSize : <%= data.totalSize %> 나오나?</p>
+        <p>pagingSize : <%= pagingSize %></p>
+
+        <% for (i = 1; i < 4; i ++ ){ %>   
+            <a href='#' onclick= sort_ad(<%= i %>) class='paging-button'><%= i %></a>
+        <% } %>  
+
+    </div>
+    <a href="#" class ="paging-button">&raquo;&raquo;</a>
+</body>
+
+</html>

@@ -1,0 +1,95 @@
+<html>
+    <head>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>  
+        <link rel='stylesheet' href='/stylesheets/style.css' />
+    </head>
+    <body> 
+    <div class="main_container">
+        <h1><a href="/pra_diss" style="text-decoration: none;">pra_diss 검색</h1></a>
+        <form action="/pra_diss" method="POST">
+            <div class="title_con">
+                <!-- SELECT HOSPITAL -->
+                <select name ="hosSelect" onchange="hosChange();">
+                    <%
+                    const option = ["세브란스","강남세브란스","용인세브란스","치과병원"];
+                    const value =["sev", "gs", "yi", "dental"];
+
+                    for( let i = 0; i<option.length; i++) { %>
+                        <% if (hosSelect !== undefined  && value[i] === hosSelect ) {  %>
+                            <option value="<%= value[i] %>" selected><%= option[i] %></option>
+                        <% } else { %>
+                            <option value="<%= value[i] %>"><%= option[i] %></option>                       
+                    <% } }
+                %>
+                </select>
+                <input type="text" id="keyword" name="keyword" placeholder="검색" value="<%=keyword%>">
+                <input type="submit" name="boardBtn" value="검색" id="sub">
+                
+                <!-- 페이지처리 -->
+                <select name = "pagingSize" style="float: right;" onchange="this.form.submit()">
+                    <%
+                        const paging = ["10", "20", "30"];
+                        for(let i=0; i<paging.length; i++ ) { %>
+                            <% if( pagingSize !== undefined && paging[i] === pagingSize ) { %>
+                                <option value="<%=paging[i] %>" selected><%= paging[i]%></option>
+                            <% } else { %>
+                                <option value="<%=paging[i] %>"><%= paging[i]%></option>
+                            <% } } 
+                    %>
+                </select>
+
+                <!-- 결과물 보이게 -->
+                <div>
+                    <% for(let i =0;i<data.aggs.length; i++ ) { %>
+                        <% if( hosSelect === "sev"){ %>
+                            <p><h3><%=hosSelect%> 의 결과물은 총 : <%=data.aggs[i]%></h3></p>
+                            <% break; %> 
+                        <% } else if(hosSelect ==="gs") { %>
+                            <p><h3><%=hosSelect%> 의 결과물은 총 : <%=data.aggs[i]%></h3></p>
+                            <% break; %>
+                        <% } else if(hosSelect ==="dental") { %>
+                            <p><h3><%=hosSelect%> 의 결과물은 총 : <%=data.aggs[i]%></h3></p>
+                            <% break; %>
+                        <% } else { %>
+                            <p><h3><%=hosSelect%> 의 결과물은 총 : <%=data.aggs[i]%></h3></p>
+                            <% break; %>
+                        <% } %>
+                    <% } %>    
+                </div>            
+            </div>
+            <br>
+            <!-- 테이블 -->
+            <div class = "praboard_div">
+                <table id ="praboardTab">
+                    <thead>
+                            <tr>
+                                <th style="width: 20%;">TITLE</th>
+                                <th style="width: 65%;">CONTENTS</th>
+                                <th style="width: 15%;">WRITER_NM</th>
+                            </tr>
+                    </thead>
+                    <!-- 일단, 만약 recommend_keyword 또는 related_keyword값이 있다면, 있다는 표시만 -->
+
+                    <tbody>
+                        <% for(var i=0; i< data.list.length ; i++){ %>
+                            <tr>
+                                <td><%= data.list[i].title %>
+                                    <% if( data.list[i].recommend_keyword !==undefined || data.list[i].related_keyword !==undefined) { %>
+                                        <% if(data.list[i].recommend_keyword !== undefined){ %>
+                                            <div style="color:rgb(245, 38, 83); background-color: yellow; margin: auto;display: inline-block;">추천!</div>
+                                        <% } else { %>
+                                            <div style="color:rgb(26, 38, 209); background-color: yellow; margin: auto;display: inline-block;">연관!</div>
+                                        <% } %>
+                                    <% } %>
+                                </td>
+                                <td><a href="/pra_info?id=<%=data.list[i].es_key%>" target="/pra_info" style="text-decoration: none;"><%- data.list[i]["contents"] %></a></td>
+                                <td><%= data.list[i].writer_nm %></td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>   
+        </form>
+    </div>
+    </body> 
+</html>
